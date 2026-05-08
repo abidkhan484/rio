@@ -883,8 +883,15 @@ window.resizeTo(screen.availWidth, screen.availHeight);
             try:
                 result._rio_force_refresh_skip_await  # type: ignore
             except AttributeError:
-                if inspect.isawaitable(result):
-                    await result
+                pass
+            else:
+                return
+
+            # **Intentionally** call the user code outside of the `try` block.
+            # This way it doesn't show up in any user tracebacks. `hasattr` is
+            # also a valid option here, but doesn't allow for refactoring.
+            if inspect.isawaitable(result):
+                await result
 
         # Display and discard exceptions
         except Exception as error:
