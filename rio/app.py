@@ -1201,6 +1201,10 @@ pixels_per_rem;
         This function adds a new default attachment to the app, causing it to
         be attached to every new session.
 
+        Note: Default attachments are not copied. Every session will share the
+        exact same instance of the attachment. (Exception: Instances of
+        `rio.UserSettings`.)
+
         ## Parameters
 
         `attachment`: The value to attach to the session. You can retrieve it

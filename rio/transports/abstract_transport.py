@@ -33,7 +33,8 @@ class AbstractTransport(abc.ABC):
         """
         Return the next message received from the client. If the transport is
         closed, throw either `TransportInterrupted` or
-        `TransportClosedIntentionally`.
+        `TransportClosedIntentionally`. Additionally, `asyncio.CancelledError`
+        may be raised if the receiving task is cancelled.
         """
         raise NotImplementedError
 

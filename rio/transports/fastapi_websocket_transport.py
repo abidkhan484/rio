@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 
 import fastapi
@@ -24,7 +25,14 @@ class FastapiWebsocketTransport(abstract_transport.AbstractTransport):
             pass  # Socket is already closed
         except fastapi.WebSocketDisconnect as err:
             self._closed_intentionally = err.code == 1001
-        except BaseException as err:
+        except asyncio.CancelledError:
+            # I think `_closed_intentionally = True` expresses the semantics of
+            # `CancelledError` best - this isn't a temporary interruption, we're
+            # closing down for good.
+            self._closed_intentionally = True
+            self.closed_event.set()
+            raise
+        except BaseException:
             self._closed_intentionally = False
 
         self.closed_event.set()

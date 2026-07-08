@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 import dataclasses
 import typing as t
 
 from uniserde import JsonDoc
+
+import rio
 
 from ..utils import URL
 from .fundamental_component import FundamentalComponent
@@ -20,6 +24,9 @@ class Webview(FundamentalComponent):
     If the HTML code starts with "<!DOCTYPE " or "<html", it is automatically
     displayed in an iframe.
 
+    Inline JS code can use `rioSendMessage` to send a message to python. On the
+    python side, the `on_message` function will be called with the payload.
+
 
     ## Attributes
 
@@ -32,6 +39,10 @@ class Webview(FundamentalComponent):
     `resize_to_fit_content`: Whether the `Webview` component should automatically
         update its size to match the size of its content. Note that this won't
         work if the displayed website's domain doesn't match your own domain.
+
+    `on_message`: Triggered when the HTML content calls
+        `rioSendMessage`. The argument is the value passed to the JavaScript
+        function.
 
 
     ## Examples
@@ -56,17 +67,39 @@ class Webview(FundamentalComponent):
     ```python
     rio.Webview("<p>Hello World</p>")
     ```
+
+    This will display a website and handle messages sent from the
+    JavaScript `rioSendMessage` function:
+
+    ```python
+    class MyComponent(rio.Component):
+        message_log: list[str] = []
+
+        def on_message(self, msg: object) -> None:
+            self.message_log.append(str(msg))
+
+        def build(self) -> rio.Component:
+            return rio.Webview(
+                "<script>rioSendMessage('Hello from JS!')</script>",
+                on_message=self.on_message,
+            )
+    ```
     """
 
     content: URL | str
     _: dataclasses.KW_ONLY
     enable_pointer_events: bool = True
     resize_to_fit_content: bool = True
+    on_message: rio.EventHandler[[object]] = None
 
     def _custom_serialize_(self) -> JsonDoc:
         return {
             "content": str(self.content),
         }
+
+    async def _on_message_(self, msg: t.Any) -> None:
+        if self.on_message is not None:
+            await self.call_event_handler(self.on_message, msg)
 
 
 Webview._unique_id_ = "Webview-builtin"

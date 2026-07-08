@@ -20,6 +20,7 @@ import introspection
 import ordered_set
 import revel
 import starlette.datastructures
+import typing_extensions as te
 import unicall.json_rpc
 import uniserde
 from identity_containers import IdentityDefaultDict, IdentitySet
@@ -823,14 +824,24 @@ window.resizeTo(screen.availWidth, screen.availHeight);
                 except RuntimeError:  # Websocket is already closed
                     pass
 
-        # Cancel all running tasks
-        for task in self._running_tasks:
-            task.cancel("Session is closing")
+        # Cancel all running tasks, except ourselves
+        current_task = asyncio.current_task()
+
+        for task in list(self._running_tasks):
+            if task is not current_task:
+                task.cancel("Session is closing")
 
         # Close the connection to the client
         await self._rio_transport.close()
 
         self._app_server._after_session_closed(self)
+
+    @te.override
+    async def serve(self) -> None:
+        try:
+            await super().serve()
+        except TransportClosedIntentionally:
+            self.close()
 
     def _get_user_root_component(self) -> rio.Component:
         high_level_root = self._high_level_root_component
@@ -3641,11 +3652,6 @@ a.remove();
             except TransportInterrupted:
                 self._is_connected_event.clear()
                 self._app_server._disconnected_sessions[self] = time.monotonic()
-            except TransportClosedIntentionally:
-                self.close()
-
-                while True:
-                    await asyncio.sleep(999999)
 
     @property
     def _is_connected(self) -> bool:

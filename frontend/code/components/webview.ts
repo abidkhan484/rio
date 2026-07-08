@@ -12,11 +12,34 @@ export class WebviewComponent extends ComponentBase<WebviewState> {
     private iframe: HTMLIFrameElement | null = null;
     private resizeObserver: ResizeObserver | null = null;
     private isInitialized = false;
+    private boundMessageHandler: ((event: MessageEvent) => void) | null = null;
 
     createElement(context: ComponentStatesUpdateContext): HTMLElement {
         let element = document.createElement("div");
         element.classList.add("rio-webview");
+
+        this.boundMessageHandler = (event: MessageEvent) => {
+            if (event.data?.type !== "rioWebviewMessage") return;
+
+            if (this.iframe !== null) {
+                if (event.source !== this.iframe.contentWindow) return;
+            } else {
+                if (event.data.webviewId !== this.id) return;
+            }
+
+            this.sendMessageToBackend(event.data.payload);
+        };
+        window.addEventListener("message", this.boundMessageHandler);
+
         return element;
+    }
+
+    onDestruction(): void {
+        super.onDestruction();
+        if (this.boundMessageHandler !== null) {
+            window.removeEventListener("message", this.boundMessageHandler);
+            this.boundMessageHandler = null;
+        }
     }
 
     updateElement(
@@ -44,7 +67,9 @@ export class WebviewComponent extends ComponentBase<WebviewState> {
                     this.element.innerHTML = "";
 
                     this.iframe = this.createIframe();
-                    this.iframe.srcdoc = deltaState.content;
+                    this.iframe.srcdoc = injectRioSendMessageForIframe(
+                        deltaState.content
+                    );
 
                     this.element.appendChild(this.iframe);
                 } else {
@@ -55,7 +80,8 @@ export class WebviewComponent extends ComponentBase<WebviewState> {
                     // Load the HTML
                     this.element.innerHTML = deltaState.content;
 
-                    // Just setting the innerHTML doesn't run scripts. Do that manually.
+                    // Just setting the innerHTML doesn't run scripts. Do that
+                    // manually.
                     this.runScriptsInElement();
                 }
 
@@ -123,10 +149,20 @@ export class WebviewComponent extends ComponentBase<WebviewState> {
                 newScriptElement.setAttribute(attr.name, attr.value);
             }
 
+            // Inject rioSendMessage for inline scripts. External scripts
+            // (those with a `src` attribute) are not modified.
+            //
+            // Use `var` so that multiple scripts within the same Webview can
+            // each declare rioSendMessage without causing redeclaration errors.
+            let content = oldScriptElement.innerHTML;
+            if (!oldScriptElement.hasAttribute("src")) {
+                content =
+                    `var rioSendMessage=function(payload){window.parent.postMessage({type:"rioWebviewMessage",webviewId:${this.id},payload:payload},"*")};` +
+                    content;
+            }
+
             // And the source itself
-            newScriptElement.appendChild(
-                document.createTextNode(oldScriptElement.innerHTML)
-            );
+            newScriptElement.appendChild(document.createTextNode(content));
 
             // Finally replace the old script element with the new one so
             // the browser executes it
@@ -136,6 +172,19 @@ export class WebviewComponent extends ComponentBase<WebviewState> {
             );
         }
     }
+}
+
+function injectRioSendMessageForIframe(html: string): string {
+    const scriptTag =
+        '<script>var rioSendMessage=function(payload){parent.postMessage({type:"rioWebviewMessage",payload:payload},"*")}</script>';
+
+    const closeHeadMatch = html.match(/<\/head>/i);
+    if (closeHeadMatch !== null) {
+        const insertPos = closeHeadMatch.index!;
+        return html.slice(0, insertPos) + scriptTag + html.slice(insertPos);
+    }
+
+    return scriptTag + html;
 }
 
 function isUrl(urlOrHtml: string): boolean {
