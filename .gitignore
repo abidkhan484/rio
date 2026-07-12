@@ -38,3 +38,5 @@ wheels/
 
 # Thirdparty files, such as icons
 /thirdparty
+
+/.opensource-env
