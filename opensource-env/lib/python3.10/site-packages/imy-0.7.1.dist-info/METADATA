@@ -1,0 +1,26 @@
+Metadata-Version: 2.3
+Name: imy
+Version: 0.7.1
+Summary: Random utilities I can't go without
+Project-URL: repository, https://gitlab.com/mad-moo/i-miss-you
+Author-email: Jakob Pinterits <jakob.pinterits@gmail.com>
+License: MIT
+Requires-Python: >=3.10
+Provides-Extra: deprecations
+Requires-Dist: introspection<2.0.0,>=1.9.2; extra == 'deprecations'
+Provides-Extra: docstrings
+Requires-Dist: introspection<2.0.0,>=1.9.2; extra == 'docstrings'
+Requires-Dist: uniserde<0.5.0,>=0.4.0; extra == 'docstrings'
+Provides-Extra: inject
+Requires-Dist: introspection<2.0.0,>=1.9.2; extra == 'inject'
+Provides-Extra: mongodb-logs
+Requires-Dist: pymongo<5.0.0,>=4.8.0; extra == 'mongodb-logs'
+Requires-Dist: uniserde<0.5.0,>=0.4.0; extra == 'mongodb-logs'
+Description-Content-Type: text/markdown
+
+# I Miss You
+
+Utilities I can't go without.
+
+This package contains a bunch of common functionality I tend to share across
+projects. It's a bit of a grab bag - maybe you'll find something useful to you.

@@ -15,6 +15,7 @@ export type CalendarState = ComponentState & {
     dayNamesLong: Array<string>;
     firstDayOfWeek: number;
     is_sensitive: boolean;
+    markWeekends: boolean;
 };
 
 export class CalendarComponent extends ComponentBase<CalendarState> {
@@ -108,6 +109,15 @@ export class CalendarComponent extends ComponentBase<CalendarState> {
         context: ComponentStatesUpdateContext
     ): void {
         super.updateElement(deltaState, context);
+
+        // Toggle class based on the `mark_weekends` property from Python backend
+        if (deltaState.markWeekends !== undefined) {
+            if (deltaState.markWeekends) {
+                this.element.classList.add("rio-calendar-mark-weekends");
+            } else {
+                this.element.classList.remove("rio-calendar-mark-weekends");
+            }
+        }
 
         if (deltaState.is_sensitive !== undefined) {
             if (deltaState.is_sensitive) {

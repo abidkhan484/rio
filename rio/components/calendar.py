@@ -53,6 +53,8 @@ class Calendar(FundamentalComponent):
 
     `is_sensitive`: Whether the calendar should respond to user input.
 
+    `mark_weekends`: Whether to visually highlight Saturdays (blue) and Sundays (red).
+
     `on_change`: Triggered whenever the user selects a new date.
 
 
@@ -99,6 +101,7 @@ class Calendar(FundamentalComponent):
         def build(self) -> rio.Component:
             return rio.Calendar(
                 value=self.value,
+                mark_weekends=True,
                 on_change=self.on_value_change,
             )
     ```
@@ -109,6 +112,7 @@ class Calendar(FundamentalComponent):
     _: dataclasses.KW_ONLY
 
     is_sensitive: bool = True
+    mark_weekends: bool = False
     on_change: rio.EventHandler[DateChangeEvent] = None
 
     def _custom_serialize_(self) -> JsonDoc:
@@ -119,6 +123,7 @@ class Calendar(FundamentalComponent):
             "monthNamesLong": self.session._month_names_long,
             "dayNamesLong": self.session._day_names_long,
             "firstDayOfWeek": self.session._first_day_of_week,
+            "markWeekends": self.mark_weekends,
         }
 
     async def _on_message_(self, msg: t.Any) -> None:
