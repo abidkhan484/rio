@@ -71,6 +71,16 @@
     gap: 0.5rem;
 }
 
+// Highlight weekends
+.rio-calendar-grid > .rio-calendar-day-name:nth-child(7n + 1),
+.rio-calendar-grid
+    > .rio-calendar-day:nth-child(7n + 1):not(.rio-calendar-selected-day),
+.rio-calendar-grid > .rio-calendar-day-name:nth-child(7n),
+.rio-calendar-grid
+    > .rio-calendar-day:nth-child(7n):not(.rio-calendar-selected-day) {
+    color: var(--rio-local-level-2-bg-active);
+}
+
 .rio-calendar-day-name {
     font-weight: bold;
     text-align: center;
@@ -116,22 +126,4 @@
 .rio-calendar.rio-disabled-input .rio-calendar-selected-day {
     color: var(--rio-local-fg);
     background: var(--rio-local-bg);
-}
-
-.rio-calendar.rio-calendar-mark-weekends {
-    .rio-calendar-grid > .rio-calendar-day-name:nth-child(7n + 1) {
-        color: #ff4d4f !important;
-    }
-    .rio-calendar-grid > .rio-calendar-day-name:nth-child(7n) {
-        color: #1890ff !important;
-    }
-
-    .rio-calendar-grid
-        > .rio-calendar-day:nth-child(7n + 1):not(.rio-calendar-selected-day) {
-        color: #ff4d4f !important;
-    }
-    .rio-calendar-grid
-        > .rio-calendar-day:nth-child(7n):not(.rio-calendar-selected-day) {
-        color: #1890ff !important;
-    }
 }
