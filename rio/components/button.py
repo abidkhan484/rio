@@ -130,6 +130,8 @@ class Button(Component):
     accessibility_label: str | None = None
 
     def build(self) -> rio.Component:
+        accessibility_label = self.accessibility_label
+
         # Prepare the child
         if self.is_loading:
             child = ProgressCircle(
@@ -176,6 +178,9 @@ class Button(Component):
                     )
                 )
 
+                if accessibility_label is None:
+                    accessibility_label = text
+
             if len(children) == 1:
                 child = children[0]
             else:
@@ -198,7 +203,7 @@ class Button(Component):
             is_loading=self.is_loading,
             min_width=8 if isinstance(self.content, str) else 0,
             min_height=2.2,
-            accessibility_label=self.accessibility_label,
+            accessibility_label=accessibility_label,
         )
 
     def __str__(self) -> str:
@@ -236,13 +241,7 @@ class _ButtonInternal(FundamentalComponent):
                 "style": "plain-text",
             }
 
-        accessibility_label = self.accessibility_label
-        if accessibility_label is None:
-            content = self.content
-            if isinstance(content, str):
-                accessibility_label = content
-
-        return {"accessibility_label": accessibility_label}
+        return {}
 
     async def _on_message_(self, msg: t.Any) -> None:
         # Parse the message
