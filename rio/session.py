@@ -2791,7 +2791,12 @@ a.remove();
         return result
 
     def __repr__(self) -> str:
-        return f"<Session {self.client_ip}:{self.client_port}>"
+        # Avoid a crash in window mode, as accessing the client's network
+        # address details raises an error to discourage relying on them.
+        if self.running_in_window:
+            return "<Session window-mode>"
+
+        return f"<Session {self._client_ip}:{self._client_port}>"
 
     async def _refresh_whenever_necessary(self) -> None:
         while True:
